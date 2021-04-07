@@ -1,0 +1,27 @@
+{
+  "name": "qwixx",
+  "version": "1.0.0",
+  "description": "Digital version of the boardgame Qwixx",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel ./src/index.html --open",
+    "build": "parcel build ./src/index.html"
+  },
+  "browserslist": "> 0.4% and not ie 11",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThumNet/Qwixx.git"
+  },
+  "author": "ThumNet",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ThumNet/Qwixx/issues"
+  },
+  "homepage": "https://github.com/ThumNet/Qwixx#readme",
+  "dependencies": {
+    "boardgame.io": "^0.43.3"
+  },
+  "devDependencies": {
+    "parcel": "^2.0.0-beta.2"
+  }
+}
