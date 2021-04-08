@@ -7,28 +7,34 @@ export const Qwixx = {
 
 
     turn: {
-        activePlayers: { currentPlayer: 'rollDice' },
+        activePlayers: { currentPlayer: 'throwDice' },
+
+        endIf: (G, ctx) => {
+            console.log('turn.endIf', ctx.activePlayers);
+            return ctx.activePlayers === null;
+        },
 
         stages: {
-            rollDice: {
-                moves: { RollDice },
+            throwDice: {
+                moves: { ThrowDice },
                 next: 'playerPickWhite'
             },
 
             playerPickWhite: {
                 moves: { PickDice, MisThrow, Discard },
-                next: 'playerPickColor'
+                next: 'playerPickColor',
+                onEnd: (G,ctx) => {
+                    console.log('playerPickWhite.onEnd', ctx.activePlayers);
+                }
             },
 
             playerPickColor: {
                 moves: { PickDice, Discard },
-                next: 'rollDice'
             },
 
-            othersPick: {
+            othersPickWhite: {
                 moves: { PickDice, Discard }
             }
-
         }
     },
 
@@ -41,6 +47,22 @@ export const Qwixx = {
 
 function Discard(G, ctx) {
     console.log('Discard', ctx);
+    ctx.events.endStage();
+}
+
+
+function ThrowDice(G, ctx) {
+    G.redDice = ctx.random.D6();
+    G.yellowDice = ctx.random.D6();
+    G.greenDice = ctx.random.D6();
+    G.blueDice = ctx.random.D6();
+    G.whiteDice1 = ctx.random.D6();
+    G.whiteDice2 = ctx.random.D6();
+
+    ctx.events.setActivePlayers({
+        others: { stage: 'othersPickWhite' },
+        currentPlayer: { stage: 'playerPickWhite' }
+    });
 }
 
 function PickDice(G, ctx, row, coll) {
@@ -82,6 +104,7 @@ function PickDice(G, ctx, row, coll) {
 
         disableLeft(playerSelected, row, coll);
         playerSelected[row][coll] = true;
+        ctx.events.endStage();
     }
     else {
         if (cell.number !== sumWhite) {
@@ -90,25 +113,16 @@ function PickDice(G, ctx, row, coll) {
 
         disableLeft(playerSelected, row, coll);
         playerSelected[row][coll] = true;
+        ctx.events.endStage();
     }
 }
 
 function MisThrow(G, ctx) {
     console.log('MisThrow', ctx);
-}
 
-function RollDice(G, ctx) {
-    G.redDice = ctx.random.D6();
-    G.yellowDice = ctx.random.D6();
-    G.greenDice = ctx.random.D6();
-    G.blueDice = ctx.random.D6();
-    G.whiteDice1 = ctx.random.D6();
-    G.whiteDice2 = ctx.random.D6();
-
-    ctx.events.setActivePlayers({
-        others: { stage: 'othersPick', moveLimit: 1 },
-        currentPlayer: { stage: 'playerPickWhite', moveLimit: 1 }
-    });
+    const player = G['player' + ctx.playerID];
+    player.misThrowCount++;
+    //todo: ctx.events.setStage(undefined);
 }
 
 function prepareGame() {

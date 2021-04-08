@@ -5,7 +5,7 @@ import { Qwixx } from './Game';
 
 class QwixxClient {
   constructor(rootElement, { playerID } = {}) {
-    this.client = Client({ 
+    this.client = Client({
       game: Qwixx,
       multiplayer: Local(),
       playerID
@@ -25,13 +25,13 @@ class QwixxClient {
     const board = this.client.getInitialState().G.board;
     const rows = [];
     for (let i = 0; i < RowCount; i++) {
-        const cells = [];
-        for (let j = 0; j < CellCount; j++) {
-            const color = board[i][j].color,
-              number = board[i][j].number;
-            cells.push(`<td class="cell ${color}" data-row="${i}" data-coll="${j}">${number}</td>`);
-        }
-        rows.push(`<tr>${cells.join('')}</tr>`);
+      const cells = [];
+      for (let j = 0; j < CellCount; j++) {
+        const color = board[i][j].color,
+          number = board[i][j].number;
+        cells.push(`<td class="cell ${color}" data-row="${i}" data-coll="${j}">${number}</td>`);
+      }
+      rows.push(`<tr>${cells.join('')}</tr>`);
     }
 
     // Add the HTML to our app <div>.
@@ -48,8 +48,9 @@ class QwixxClient {
         <td class="die white2"></td>
       </tr></table>
       <p class="winner"></p>
-      <button class="roll-dice">Roll dice</button>
+      <button class="throw-dice">Throw dice</button>
       <button class="discard">Discard</button>
+      <button class="mis-throw">Mis throw :(</button>
     `;
   }
 
@@ -57,28 +58,35 @@ class QwixxClient {
     // This event handler will read the cell id from a cell’s
     // `data-id` attribute and make the `clickCell` move.
     const handleCellClick = event => {
-        const row = parseInt(event.target.dataset.row);
-        const coll = parseInt(event.target.dataset.coll);
-        this.client.moves.PickDice(row, coll);
+      const row = parseInt(event.target.dataset.row);
+      const coll = parseInt(event.target.dataset.coll);
+      this.client.moves.PickDice(row, coll);
     };
     // Attach the event listener to each of the board cells.
     const cells = this.rootElement.querySelectorAll('.cell');
     cells.forEach(cell => {
-        cell.onclick = handleCellClick;
+      cell.onclick = handleCellClick;
     });
-    const handleRollClick = event => {
-        this.client.moves.RollDice();
+    const handleThrowClick = event => {
+      this.client.moves.ThrowDice();
     };
 
     const handleDiscardClick = event => {
       this.client.moves.Discard();
-  };
+    };
 
-    const rollButton = this.rootElement.querySelector('.roll-dice');
-    rollButton.onclick = handleRollClick;
+    const handleMisClick = event => {
+      this.client.moves.MisThrow();
+    }
+
+    const throwButton = this.rootElement.querySelector('.throw-dice');
+    throwButton.onclick = handleThrowClick;
 
     const discardButton = this.rootElement.querySelector('.discard');
     discardButton.onclick = handleDiscardClick;
+
+    const misButton = this.rootElement.querySelector('.mis-throw');
+    misButton.onclick = handleMisClick;
   }
 
   update(state) {
@@ -104,24 +112,26 @@ class QwixxClient {
     const isCurrentPlayer = state.ctx.currentPlayer === this.client.playerID;
 
     this.drawDice(state.G);
-    this.drawSelected(state.G['player'+this.client.playerID].selected);
+    this.drawSelected(state.G['player' + this.client.playerID].selected);
 
-    
+
 
     const playerStage = state.ctx.activePlayers && state.ctx.activePlayers[this.client.playerID];
 
-    const rollButton = this.rootElement.querySelector('.roll-dice');
-    const discardButton = this.rootElement.querySelector('.discard');
-    rollButton.disabled = !(playerStage === 'rollDice');
+    const throwButton = this.rootElement.querySelector('.throw-dice');
+    const discardButton = this.rootElement.querySelector('.discard');    
+    const misButton = this.rootElement.querySelector('.mis-throw');
 
-    console.log(this.client.playerID, playerStage)
-    discardButton.disabled = !playerStage || (playerStage === 'rollDice');
+
+    throwButton.disabled = !(playerStage === 'throwDice');
+    discardButton.disabled = !playerStage || (playerStage === 'throwDice');
+    misButton.disabled = !playerStage || !(playerStage === 'playerPickWhite');
 
     const messageEl = this.rootElement.querySelector('.winner');
     messageEl.textContent = `It’s player ${state.ctx.currentPlayer}’s turn. ${this.client.playerID} -> ${playerStage}`;
   }
 
-  drawDice(G){
+  drawDice(G) {
     if (G.whiteDice1) {
       this.rootElement.querySelector('.die.red').textContent = G.redDice;
       this.rootElement.querySelector('.die.yellow').textContent = G.yellowDice;
