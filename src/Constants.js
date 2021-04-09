@@ -1,6 +1,10 @@
 export const RowCount = 4;
-export const CellCount = 11;
+export const ColCount = 11;
 export const MaxMisThrows = 4;
+
+export const SELECTED = 1; // using number 1 instead of bool to enable counting
+export const NOTSELETED = 0;
+export const UNSELETED = null;
 
 export const RED = 'red';
 export const YELLOW = 'yellow';
