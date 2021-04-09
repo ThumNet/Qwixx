@@ -123,9 +123,9 @@ class QwixxClient {
     const misButton = this.rootElement.querySelector('.mis-throw');
 
 
-    throwButton.disabled = !(playerStage === 'throwDice');
-    discardButton.disabled = !playerStage || (playerStage === 'throwDice');
-    misButton.disabled = !playerStage || !(playerStage === 'playerPickWhite');
+    throwButton.disabled = !(playerStage === 'rolling');
+    discardButton.disabled = !playerStage || (playerStage === 'rolling');
+    misButton.disabled = !playerStage || !(isCurrentPlayer && playerStage === 'pickingWhite');
 
     const messageEl = this.rootElement.querySelector('.winner');
     messageEl.textContent = `It’s player ${state.ctx.currentPlayer}’s turn. ${this.client.playerID} -> ${playerStage}`;
@@ -143,7 +143,6 @@ class QwixxClient {
   }
 
   drawSelected(selected) {
-    console.log(selected);
     const cells = this.rootElement.querySelectorAll('.cell');
     cells.forEach(cell => {
       const row = parseInt(cell.dataset.row);
