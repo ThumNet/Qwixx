@@ -257,7 +257,7 @@ function prepareGame() {
         whiteDice1: null,
         whiteDice2: null,
         closedRows: Array(RowCount).fill(false),
-        board: createVariantABoard()
+        board: createDefaultBoard()
     }
 
 }
