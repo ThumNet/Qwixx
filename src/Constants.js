@@ -11,3 +11,5 @@ export const YELLOW = 'yellow';
 export const GREEN = 'green';
 export const BLUE = 'blue';
 export const WHITE = 'white';
+
+export const SCORE_SELECTION = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78];

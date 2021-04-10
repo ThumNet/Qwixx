@@ -1,12 +1,17 @@
 import { INVALID_MOVE } from 'boardgame.io/core';
-import { ColCount, MaxMisThrows, RowCount, RED, YELLOW, 
-    GREEN, BLUE, WHITE, SELECTED, NOTSELETED, UNSELETED } from './Constants';
+import {
+    ColCount, MaxMisThrows, RowCount, RED, YELLOW,
+    GREEN, BLUE, WHITE, SELECTED, NOTSELETED, UNSELETED, SCORE_SELECTION
+} from './Constants';
 
 // TODO:
-// - test row disable + dice removal
-// - Calculate score
+// - test row disable
 // - Display winner
+// - instead of array index 0 for red use constant for readability
+// - look for todo's ;)
 // - Improve styling :)
+
+
 
 export const Qwixx = {
 
@@ -55,7 +60,7 @@ function resetTurn(G, ctx) {
     G.blueDice = null;
     G.whiteDice1 = null;
     G.whiteDice2 = null;
-    
+
     G.player0.movesLeft = 1;
     G.player1.movesLeft = 1;
     G['player' + ctx.currentPlayer].movesLeft = 2;
@@ -65,10 +70,42 @@ function resetTurn(G, ctx) {
     ctx.events.setActivePlayers({ currentPlayer: 'rolling' });
 }
 
+const hasBonusInRow = (playerRow) => {
+    return playerRow.filter(s => s === SELECTED).length >= 6 
+        && playerRow[ColCount-1] === SELECTED;
+}
+
+function updatePlayerScore(player, board) {
+    let selectedPerColor = { RED: 0, YELLOW: 0, GREEN: 0, BLUE: 0 };
+    // normal points
+    for (let i = 0; i < RowCount; i++) {
+        for (let j = 0; j < ColCount; j++) {
+            const cellColor = board[i][j].color.toUpperCase(); // !important, constant is lowercase
+            if (player.selected[i][j] === SELECTED) {
+                selectedPerColor[cellColor]++;
+            }
+        }
+    }
+    console.log(selectedPerColor);
+    // extra point by closing the row
+    if (hasBonusInRow(player.selected[0])) { selectedPerColor.RED++; }
+    if (hasBonusInRow(player.selected[1])) { selectedPerColor.YELLOW++; }
+    if (hasBonusInRow(player.selected[2])) { selectedPerColor.GREEN++; }
+    if (hasBonusInRow(player.selected[3])) { selectedPerColor.BLUE++; }
+
+    player.score[0] = SCORE_SELECTION[selectedPerColor.RED];
+    player.score[1] = SCORE_SELECTION[selectedPerColor.YELLOW];
+    player.score[2] = SCORE_SELECTION[selectedPerColor.GREEN];
+    player.score[3] = SCORE_SELECTION[selectedPerColor.BLUE];
+    player.score[4] = player.misThrowCount * 5 * -1;
+    player.score[5] = player.score[0] + player.score[1] + player.score[2] + player.score[3] + player.score[4];
+}
+
 function hasGameEnded(G) {
     const hasMaxMissesP0 = G.player0.misThrowCount === MaxMisThrows;
     const hasMaxMissesP1 = G.player1.misThrowCount === MaxMisThrows;
     const hasMaxRowsClosed = G.closedRows.filter(x => x === true).length >= 2;
+    // todo; wait for other players movesleft === 0
     return hasMaxMissesP0 || hasMaxMissesP1 || hasMaxRowsClosed;
 }
 
@@ -149,7 +186,8 @@ function PickDice(G, ctx, row, col) {
             if (playerRow[i] === UNSELETED) playerRow[i] = NOTSELETED;
         }
         playerRow[col] = SELECTED;
-        if (isLastCol(col)){ G.closedRows[row] = true; }
+        if (isLastCol(col)) { G.closedRows[row] = true; }
+        updatePlayerScore(player, G.board);
         player.movesLeft--;
     };
 
@@ -157,7 +195,7 @@ function PickDice(G, ctx, row, col) {
         if (!isValidWhiteSelection(cell, G)) {
             return INVALID_MOVE;
         }
-        if (isLastCol(col) && !has5Selected(player.selected[row])){ 
+        if (isLastCol(col) && !has5Selected(player.selected[row])) {
             return INVALID_MOVE;
         }
 
@@ -170,7 +208,7 @@ function PickDice(G, ctx, row, col) {
         if (!isValidColorSelection(cell, G)) {
             return INVALID_MOVE;
         }
-        if (isLastCol(col) && !has5Selected(player.selected[row])){ 
+        if (isLastCol(col) && !has5Selected(player.selected[row])) {
             return INVALID_MOVE;
         }
 
@@ -185,6 +223,7 @@ function MisThrow(G, ctx) {
     const player = G['player' + ctx.playerID];
     player.misThrowCount++;
     player.movesLeft = 0;
+    updatePlayerScore(player, G.board);
     ctx.events.endStage();
 }
 
@@ -193,15 +232,17 @@ function prepareGame() {
     return {
         player0: {
             selected: Array(RowCount).fill(null).map(() => Array(ColCount).fill(UNSELETED)),
+            score: Array(6).fill(0),
             misThrowCount: 0,
             movesLeft: 2,
         },
         player1: {
             selected: Array(RowCount).fill(null).map(() => Array(ColCount).fill(UNSELETED)),
+            score: Array(6).fill(0),
             misThrowCount: 0,
             movesLeft: 1,
         },
-        currentPlayerDiscardedWhite: false,        
+        currentPlayerDiscardedWhite: false,
         redDice: null,
         yellowDice: null,
         greenDice: null,
@@ -217,22 +258,22 @@ function prepareGame() {
 function createDefaultBoard() {
     return [
         [   // Row0 = all red
-            { number: 2, color: RED }, { number: 3, color: RED }, { number: 4, color: RED }, { number: 5, color: RED }, 
-            { number: 6, color: RED }, { number: 7, color: RED }, { number: 8, color: RED }, { number: 9, color: RED }, 
+            { number: 2, color: RED }, { number: 3, color: RED }, { number: 4, color: RED }, { number: 5, color: RED },
+            { number: 6, color: RED }, { number: 7, color: RED }, { number: 8, color: RED }, { number: 9, color: RED },
             { number: 10, color: RED }, { number: 11, color: RED }, { number: 12, color: RED }
         ],
         [   // Row0 = all yellow
-            { number: 2, color: YELLOW }, { number: 3, color: YELLOW }, { number: 4, color: YELLOW }, { number: 5, color: YELLOW }, 
-            { number: 6, color: YELLOW }, { number: 7, color: YELLOW }, { number: 8, color: YELLOW }, { number: 9, color: YELLOW }, 
+            { number: 2, color: YELLOW }, { number: 3, color: YELLOW }, { number: 4, color: YELLOW }, { number: 5, color: YELLOW },
+            { number: 6, color: YELLOW }, { number: 7, color: YELLOW }, { number: 8, color: YELLOW }, { number: 9, color: YELLOW },
             { number: 10, color: YELLOW }, { number: 11, color: YELLOW }, { number: 12, color: YELLOW }
         ],
         [   // Row0 = all green
-            { number: 12, color: GREEN }, { number: 11, color: GREEN }, { number: 10, color: GREEN }, { number: 9, color: GREEN }, 
-            { number: 8, color: GREEN }, { number: 7, color: GREEN }, { number: 6, color: GREEN }, { number: 5, color: GREEN }, 
+            { number: 12, color: GREEN }, { number: 11, color: GREEN }, { number: 10, color: GREEN }, { number: 9, color: GREEN },
+            { number: 8, color: GREEN }, { number: 7, color: GREEN }, { number: 6, color: GREEN }, { number: 5, color: GREEN },
             { number: 4, color: GREEN }, { number: 3, color: GREEN }, { number: 2, color: GREEN }
         ],
         [   // Row0 = all blue
-            { number: 12, color: BLUE }, { number: 11, color: BLUE }, { number: 10, color: BLUE }, { number: 9, color: BLUE }, 
+            { number: 12, color: BLUE }, { number: 11, color: BLUE }, { number: 10, color: BLUE }, { number: 9, color: BLUE },
             { number: 8, color: BLUE }, { number: 7, color: BLUE }, { number: 6, color: BLUE }, { number: 5, color: BLUE },
             { number: 4, color: BLUE }, { number: 3, color: BLUE }, { number: 2, color: BLUE }
         ],

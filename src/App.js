@@ -53,6 +53,14 @@ class QwixxClient {
       <button class="discard">Discard</button>
       <button class="mis-throw">Mis throw :(</button>
       <span>Missed throws: <span class="missed">0</span> (max: 4)</span>
+      <table><tr>
+        <td class="score red"></td>
+        <td class="score yellow"></td>
+        <td class="score green"></td>
+        <td class="score blue"></td>
+        <td class="score minus"></td>
+        <td class="score total"></td>
+      </tr></table>
     `;
   }
 
@@ -117,6 +125,7 @@ class QwixxClient {
 
     this.drawDice(state.G);
     this.drawSelected(player.selected);
+    this.drawScore(player.score)
 
     const playerStage = state.ctx.activePlayers && state.ctx.activePlayers[this.client.playerID];
 
@@ -157,6 +166,15 @@ class QwixxClient {
         cell.classList.add('not-selected');
       }
     });
+  }
+
+  drawScore(playerScore) {
+    this.rootElement.querySelector('.score.red').textContent = playerScore[0];
+    this.rootElement.querySelector('.score.yellow').textContent = playerScore[1];
+    this.rootElement.querySelector('.score.green').textContent = playerScore[2];
+    this.rootElement.querySelector('.score.blue').textContent = playerScore[3];
+    this.rootElement.querySelector('.score.minus').textContent = playerScore[4];
+    this.rootElement.querySelector('.score.total').textContent = playerScore[5];
   }
 }
 
