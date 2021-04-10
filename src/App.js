@@ -54,11 +54,13 @@ class QwixxClient {
       <button class="mis-throw">Mis throw :(</button>
       <span>Missed throws: <span class="missed">0</span> (max: 4)</span>
       <table><tr>
+        <td>Scores: </td>
         <td class="score red"></td>
         <td class="score yellow"></td>
         <td class="score green"></td>
         <td class="score blue"></td>
         <td class="score minus"></td>
+        <td>Total = </td>
         <td class="score total"></td>
       </tr></table>
     `;
@@ -101,49 +103,16 @@ class QwixxClient {
   }
 
   update(state) {
-    // // Get all the board cells.
-    // const cells = this.rootElement.querySelectorAll('.cell');
-    // // Update cells to display the values in game state.
-    // cells.forEach(cell => {
-    //   const cellId = parseInt(cell.dataset.id);
-    //   const cellValue = state.G.cells[cellId];
-    //   cell.textContent = cellValue !== null ? cellValue : '';
-    // });
-    // // Get the gameover message element.
-    // const messageEl = this.rootElement.querySelector('.winner');
-    // // Update the element to show a winner if any.
-    // if (state.ctx.gameover) {
-    //   messageEl.textContent =
-    //     state.ctx.gameover.winner !== undefined
-    //       ? 'Winner: ' + state.ctx.gameover.winner
-    //       : 'Draw!';
-    // } else {
-    //   messageEl.textContent = '';
-    // }
     const isCurrentPlayer = state.ctx.currentPlayer === this.client.playerID;
     const player = state.G['player' + this.client.playerID];
+    const playerStage = state.ctx.activePlayers && state.ctx.activePlayers[this.client.playerID];
 
     this.drawDice(state.G);
     this.drawSelected(player.selected);
-    this.drawScore(player.score)
-
-    const playerStage = state.ctx.activePlayers && state.ctx.activePlayers[this.client.playerID];
-
-    const throwButton = this.rootElement.querySelector('.throw-dice');
-    const discardButton = this.rootElement.querySelector('.discard');    
-    const misButton = this.rootElement.querySelector('.mis-throw');
-    const missedEl = this.rootElement.querySelector('.missed');
-    const messageEl = this.rootElement.querySelector('.message');
-
-    const canDiscard = playerStage === 'pickingWhite' || (playerStage === 'pickingColor' && !state.G.currentPlayerDiscardedWhite);
-    const canThrow = playerStage === 'rolling';
-    const canMis = isCurrentPlayer && playerStage === 'pickingColor' && state.G.currentPlayerDiscardedWhite;
-
-    throwButton.disabled = !canThrow;
-    discardButton.disabled = !canDiscard;
-    misButton.disabled = !canMis;
-    missedEl.textContent = player.misThrowCount;
-    messageEl.textContent = `It’s player ${state.ctx.currentPlayer}’s turn. --> ${playerStage}`;
+    this.drawScore(player.score);
+    this.drawButtons(isCurrentPlayer, playerStage, state.G.currentPlayerDiscardedWhite);
+    this.drawMissed(player.misThrowCount);
+    this.drawMessage(state.ctx, playerStage);
   }
 
   drawDice(G) {
@@ -175,6 +144,36 @@ class QwixxClient {
     this.rootElement.querySelector('.score.blue').textContent = playerScore[3];
     this.rootElement.querySelector('.score.minus').textContent = playerScore[4];
     this.rootElement.querySelector('.score.total').textContent = playerScore[5];
+  }
+
+  drawButtons(isCurrentPlayer, playerStage, currentPlayerDiscardedWhite) {
+    const throwButton = this.rootElement.querySelector('.throw-dice');
+    const discardButton = this.rootElement.querySelector('.discard');    
+    const misButton = this.rootElement.querySelector('.mis-throw');
+
+    const canDiscard = playerStage === 'pickingWhite' || (playerStage === 'pickingColor' && !currentPlayerDiscardedWhite);
+    const canThrow = playerStage === 'rolling';
+    const canMis = isCurrentPlayer && playerStage === 'pickingColor' && currentPlayerDiscardedWhite;
+
+    throwButton.disabled = !canThrow;
+    discardButton.disabled = !canDiscard;
+    misButton.disabled = !canMis;
+  }
+
+  drawMissed(misThrowCount) {
+    this.rootElement.querySelector('.missed').textContent = misThrowCount;
+  }
+
+  drawMessage(ctx, playerStage) {
+    const messageEl = this.rootElement.querySelector('.message');
+    if (ctx.gameover) {
+      messageEl.textContent =
+        ctx.gameover.winner !== undefined
+          ? 'Winner: ' + ctx.gameover.winner
+          : 'Draw!';
+    } else {
+      messageEl.textContent = `It’s player ${ctx.currentPlayer}’s turn. --> ${playerStage}`;
+    }
   }
 }
 

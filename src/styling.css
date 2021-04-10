@@ -28,3 +28,10 @@
 .die.yellow { background-color: #ffd500;}
 .die.green { background-color: #00b170;}
 .die.blue { background-color: #2a66ea;}
+
+.score.red { color: #ff425c; }
+.score.yellow { color: #ffd500;}
+.score.green { color: #00b170;}
+.score.blue { color: #2a66ea;}
+.score.minus { color: grey; }
+.score.total { color: black; font-weight: bold; }

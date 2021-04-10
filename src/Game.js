@@ -5,10 +5,12 @@ import {
 } from './Constants';
 
 // TODO:
-// - test row disable
-// - Display winner
 // - instead of array index 0 for red use constant for readability
 // - look for todo's ;)
+// - support more then 2 players
+// - support 1 player
+// - instead of ctx.currentPlayer (string, with player name) use ctx.playOrderPos 
+//      and make G.player[] instead of G.player0 and G.player1
 // - Improve styling :)
 
 
@@ -47,8 +49,10 @@ export const Qwixx = {
 
     endIf: (G, ctx) => {
         if (hasGameEnded(G)) {
-            // TODO calculate score
-            ctx.events.endGame();
+            const player0Score = G.player0.score[5];
+            const player1Score = G.player1.score[5];
+            if (player0Score === player1Score) { return { draw: true }; }
+            return { winner: (player0Score > player1Score ? '0' : '1') };
         }
     }
 }
@@ -105,7 +109,10 @@ function hasGameEnded(G) {
     const hasMaxMissesP0 = G.player0.misThrowCount === MaxMisThrows;
     const hasMaxMissesP1 = G.player1.misThrowCount === MaxMisThrows;
     const hasMaxRowsClosed = G.closedRows.filter(x => x === true).length >= 2;
-    // todo; wait for other players movesleft === 0
+
+    const anyMovesLeft = G.player0.movesLeft + G.player1.movesLeft > 0;
+    if (anyMovesLeft) { return false; }
+
     return hasMaxMissesP0 || hasMaxMissesP1 || hasMaxRowsClosed;
 }
 
