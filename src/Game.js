@@ -12,6 +12,7 @@ import {
 // - instead of ctx.currentPlayer (string, with player name) use ctx.playOrderPos 
 //      and make G.player[] instead of G.player0 and G.player1
 // - Improve styling :)
+//      - render lock .islocked
 
 
 

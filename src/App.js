@@ -29,16 +29,51 @@ class QwixxClient {
       for (let j = 0; j < ColCount; j++) {
         const color = board[i][j].color,
           number = board[i][j].number;
-        cells.push(`<td class="cell ${color}" data-row="${i}" data-col="${j}">${number}</td>`);
+        const classNameExtra = j === 0 ? 'first' : j === ColCount - 1 ? 'last' : '';
+        cells.push(`
+        <td class="cell ${color} ${classNameExtra}">
+          <span><i data-row="${i}" data-col="${j}">${number}</i></span>
+        </td>`);
       }
-      rows.push(`<tr>${cells.join('')}</tr>`);
+      rows.push(`<tr><td class="space">&nbsp;</td>${cells.join('')}<td class="lock ${board[i][ColCount-1].color}"><span>&nbsp;</span></td><td class="space">&nbsp;</td></tr>`);
     }
 
     // Add the HTML to our app <div>.
     // We’ll use the empty <p> to display the game winner later.
     this.rootElement.innerHTML = `
       <h3>Player ${this.client.playerID}</h3>
-      <table>${rows.join('')}</table>
+      <table class="noborder">
+        ${rows.join('')}
+        <tr>
+          <td class="space">&nbsp;</td>
+          <td class="fail" colspan="${ColCount+1}">
+            <span class="fail-text">Misthrows:</span>
+            <span class="fail-box">&nbsp;</span>
+            <span class="fail-box">&nbsp;</span>
+            <span class="fail-box">&nbsp;</span>
+            <span class="fail-box">&nbsp;</span>
+          </td>
+          <td class="space">&nbsp;</td>
+        </tr>
+        <tr>
+          <td class="score space">&nbsp;</td>
+          <td class="score score-text">Score:</td>
+          <td class="score score-calc" colspan="${ColCount}">
+            <span class="score-box red"></span>
+            <i>+</i>
+            <span class="score-box yellow"></span>
+            <i>+</i>
+            <span class="score-box green"></span>
+            <i>+</i>
+            <span class="score-box blue"></span>
+            <i>-</i>
+            <span class="score-box minus"></span>
+            <i>=</i>
+            <span class="score-box total"></span>
+          </td>
+          <td class="score space">&nbsp;</td>
+        </tr>
+      </table>
       <table><tr>
         <td class="die white1"></td>
         <td class="die white2"></td>
@@ -52,17 +87,6 @@ class QwixxClient {
       <button class="throw-dice">Throw dice</button>
       <button class="discard">Discard</button>
       <button class="mis-throw">Mis throw :(</button>
-      <span>Missed throws: <span class="missed">0</span> (max: 4)</span>
-      <table><tr>
-        <td>Scores: </td>
-        <td class="score red"></td>
-        <td class="score yellow"></td>
-        <td class="score green"></td>
-        <td class="score blue"></td>
-        <td class="score minus"></td>
-        <td>Total = </td>
-        <td class="score total"></td>
-      </tr></table>
     `;
   }
 
@@ -87,7 +111,7 @@ class QwixxClient {
     }
 
     // Attach the event listener to each of the board cells.
-    const cells = this.rootElement.querySelectorAll('.cell');
+    const cells = this.rootElement.querySelectorAll('.cell span i');
     cells.forEach(cell => {
       cell.onclick = handleCellClick;
     });
@@ -125,25 +149,25 @@ class QwixxClient {
   }
 
   drawSelected(selected) {
-    const cells = this.rootElement.querySelectorAll('.cell');
+    const cells = this.rootElement.querySelectorAll('.cell span i');
     cells.forEach(cell => {
       const row = parseInt(cell.dataset.row);
       const col = parseInt(cell.dataset.col);
       if (selected[row][col] === SELECTED) {
-        cell.classList.add('selected');
+        cell.parentNode.classList.add('selected');
       } else if (selected[row][col] === NOTSELETED) {
-        cell.classList.add('not-selected');
+        cell.parentNode.classList.add('not-selected');
       }
     });
   }
 
   drawScore(playerScore) {
-    this.rootElement.querySelector('.score.red').textContent = playerScore[0];
-    this.rootElement.querySelector('.score.yellow').textContent = playerScore[1];
-    this.rootElement.querySelector('.score.green').textContent = playerScore[2];
-    this.rootElement.querySelector('.score.blue').textContent = playerScore[3];
-    this.rootElement.querySelector('.score.minus').textContent = playerScore[4];
-    this.rootElement.querySelector('.score.total').textContent = playerScore[5];
+    this.rootElement.querySelector('.score-box.red').textContent = playerScore[0];
+    this.rootElement.querySelector('.score-box.yellow').textContent = playerScore[1];
+    this.rootElement.querySelector('.score-box.green').textContent = playerScore[2];
+    this.rootElement.querySelector('.score-box.blue').textContent = playerScore[3];
+    this.rootElement.querySelector('.score-box.minus').textContent = (playerScore[4] * -1) // only for display;
+    this.rootElement.querySelector('.score-box.total').textContent = playerScore[5];
   }
 
   drawButtons(isCurrentPlayer, playerStage, currentPlayerDiscardedWhite) {
@@ -161,7 +185,12 @@ class QwixxClient {
   }
 
   drawMissed(misThrowCount) {
-    this.rootElement.querySelector('.missed').textContent = misThrowCount;
+    const fails = this.rootElement.querySelectorAll('.fail-box');
+    fails.forEach((fail, i) => {
+      if (i < misThrowCount) {
+        fail.classList.add('active');
+      }
+    });
   }
 
   drawMessage(ctx, playerStage) {
