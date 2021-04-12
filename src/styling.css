@@ -194,18 +194,6 @@ table.noborder td {
   padding: 0;
 }
 
-.die {
-  width: 50px;
-  height: 50px;
-  line-height: 50px;
-  text-align: center;
-  border-radius: 12px;
-  border: 2px solid grey; 
-  box-shadow: 2px 2px 2px grey;
-}
-.die:empty { display: none; }
-.die.red { background-color: #ff425c; }
-.die.yellow { background-color: #ffd500;}
-.die.green { background-color: #00b170;}
-.die.blue { background-color: #2a66ea;}
+
+@import './dice.css';
 

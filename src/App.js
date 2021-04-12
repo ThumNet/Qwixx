@@ -35,7 +35,13 @@ class QwixxClient {
           <span><i data-row="${i}" data-col="${j}">${number}</i></span>
         </td>`);
       }
-      rows.push(`<tr><td class="space">&nbsp;</td>${cells.join('')}<td class="lock ${board[i][ColCount-1].color}"><span>&nbsp;</span></td><td class="space">&nbsp;</td></tr>`);
+      rows.push(`<tr>
+          <td class="space">&nbsp;</td>
+          ${cells.join('')}
+          <td class="lock ${board[i][ColCount-1].color}"><span>&nbsp;</span></td>
+          <td class="space">&nbsp;</td>
+        </tr>`
+      );
     }
 
     // Add the HTML to our app <div>.
@@ -74,7 +80,6 @@ class QwixxClient {
           <td class="score space">&nbsp;</td>
         </tr>
       </table>
-      <table>${rows.join('')}</table>
       <div class="dice">
         ${this.createDie(true, 'die-white1')}
         ${this.createDie(false, 'die-white2')}
@@ -83,15 +88,6 @@ class QwixxClient {
         ${this.createDie(true, 'die-green')}
         ${this.createDie(false, 'die-blue')}
       </div>
-      <table><tr>
-        <td class="die white1"></td>
-        <td class="die white2"></td>
-
-        <td class="die red"></td>
-        <td class="die yellow"></td>
-        <td class="die green"></td>
-        <td class="die blue"></td>
-      </tr></table>
       <p class="message"></p>
       <button class="throw-dice">Throw dice</button>
       <button class="discard">Discard</button>
@@ -102,40 +98,40 @@ class QwixxClient {
   createDie(odd, dieName){
     const rollClass = odd ? 'odd-roll' : 'even-roll'
     return `<ol class="die-list ${rollClass} ${dieName}" data-roll="">
-    <li class="die-item" data-side="1">
-      <span class="dot"></span>
-    </li>
-    <li class="die-item" data-side="2">
-      <span class="dot"></span>
-      <span class="dot"></span>
-    </li>
-    <li class="die-item" data-side="3">
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-    </li>
-    <li class="die-item" data-side="4">
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-    </li>
-    <li class="die-item" data-side="5">
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-    </li>
-    <li class="die-item" data-side="6">
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-    </li>
-  </ol>`;
+        <li class="die-item" data-side="1">
+        <span class="dot"></span>
+      </li>
+      <li class="die-item" data-side="2">
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </li>
+      <li class="die-item" data-side="3">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </li>
+      <li class="die-item" data-side="4">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </li>
+      <li class="die-item" data-side="5">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </li>
+      <li class="die-item" data-side="6">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </li>
+    </ol>`;
   }
 
   attachListeners() {
@@ -189,19 +185,30 @@ class QwixxClient {
 
   drawDice(G, playerStage) {
 
-    if (playerStage === 'pickingDice') {
+    if (playerStage === 'pickingDice') { // only animate once per throw
       const dice = [...this.rootElement.querySelectorAll(".die-list")];
       dice.forEach(die => {
         die.classList.toggle("odd-roll");
         die.classList.toggle("even-roll");
       });
     }
+
     this.rootElement.querySelector('.die-white1').dataset.roll = G.whiteDice1;
     this.rootElement.querySelector('.die-white2').dataset.roll = G.whiteDice2;
     this.rootElement.querySelector('.die-red').dataset.roll = G.redDice;
     this.rootElement.querySelector('.die-yellow').dataset.roll = G.yellowDice;
     this.rootElement.querySelector('.die-green').dataset.roll = G.greenDice;
     this.rootElement.querySelector('.die-blue').dataset.roll = G.blueDice;
+
+    if (!G.whiteDice1) { // swap animation
+      const dice = [...this.rootElement.querySelectorAll(".die-list")];
+      dice.forEach(die => {
+        die.classList.remove("odd-roll");
+        die.classList.remove("even-roll");
+        const isEven = Math.floor(Math.random() * 2) === 1;
+        die.classList.add(isEven ? "even-roll" : 'odd-roll');
+      });
+    }
   }
 
   drawSelected(selected) {
