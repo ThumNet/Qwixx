@@ -39,6 +39,14 @@ class QwixxClient {
     this.rootElement.innerHTML = `
       <h3>Player ${this.client.playerID}</h3>
       <table>${rows.join('')}</table>
+      <div class="dice">
+        ${this.createDie(true, 'die-white1')}
+        ${this.createDie(false, 'die-white2')}
+        ${this.createDie(true, 'die-red')}
+        ${this.createDie(false, 'die-yellow')}
+        ${this.createDie(true, 'die-green')}
+        ${this.createDie(false, 'die-blue')}
+      </div>
       <table><tr>
         <td class="die white1"></td>
         <td class="die white2"></td>
@@ -64,6 +72,45 @@ class QwixxClient {
         <td class="score total"></td>
       </tr></table>
     `;
+  }
+
+  createDie(odd, dieName){
+    const rollClass = odd ? 'odd-roll' : 'even-roll'
+    return `<ol class="die-list ${rollClass} ${dieName}" data-roll="">
+    <li class="die-item" data-side="1">
+      <span class="dot"></span>
+    </li>
+    <li class="die-item" data-side="2">
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </li>
+    <li class="die-item" data-side="3">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </li>
+    <li class="die-item" data-side="4">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </li>
+    <li class="die-item" data-side="5">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </li>
+    <li class="die-item" data-side="6">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </li>
+  </ol>`;
   }
 
   attachListeners() {
@@ -107,7 +154,7 @@ class QwixxClient {
     const player = state.G['player' + this.client.playerID];
     const playerStage = state.ctx.activePlayers && state.ctx.activePlayers[this.client.playerID];
 
-    this.drawDice(state.G);
+    this.drawDice(state.G, playerStage);
     this.drawSelected(player.selected);
     this.drawScore(player.score);
     this.drawButtons(isCurrentPlayer, playerStage, state.G.currentPlayerDiscardedWhite);
@@ -115,13 +162,21 @@ class QwixxClient {
     this.drawMessage(state.ctx, playerStage);
   }
 
-  drawDice(G) {
-    this.rootElement.querySelector('.die.white1').textContent = G.whiteDice1;
-    this.rootElement.querySelector('.die.white2').textContent = G.whiteDice2;
-    this.rootElement.querySelector('.die.red').textContent = G.redDice;
-    this.rootElement.querySelector('.die.yellow').textContent = G.yellowDice;
-    this.rootElement.querySelector('.die.green').textContent = G.greenDice;
-    this.rootElement.querySelector('.die.blue').textContent = G.blueDice;
+  drawDice(G, playerStage) {
+
+    if (playerStage === 'pickingDice') {
+      const dice = [...this.rootElement.querySelectorAll(".die-list")];
+      dice.forEach(die => {
+        die.classList.toggle("odd-roll");
+        die.classList.toggle("even-roll");
+      });
+    }
+    this.rootElement.querySelector('.die-white1').dataset.roll = G.whiteDice1;
+    this.rootElement.querySelector('.die-white2').dataset.roll = G.whiteDice2;
+    this.rootElement.querySelector('.die-red').dataset.roll = G.redDice;
+    this.rootElement.querySelector('.die-yellow').dataset.roll = G.yellowDice;
+    this.rootElement.querySelector('.die-green').dataset.roll = G.greenDice;
+    this.rootElement.querySelector('.die-blue').dataset.roll = G.blueDice;
   }
 
   drawSelected(selected) {
