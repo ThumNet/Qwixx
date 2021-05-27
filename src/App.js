@@ -1,5 +1,7 @@
 import { Client } from 'boardgame.io/client';
-import { Local } from 'boardgame.io/multiplayer';
+//import { Local } from 'boardgame.io/multiplayer';
+import { SocketIO } from 'boardgame.io/multiplayer'
+
 import { ColCount, NOTSELETED, RowCount, SELECTED, UNSELETED } from './Constants';
 import { Qwixx } from './Game';
 
@@ -7,17 +9,28 @@ class QwixxClient {
   constructor(rootElement, { playerID } = {}) {
     this.client = Client({
       game: Qwixx,
-      multiplayer: Local(),
+      // multiplayer: Local(),
+      multiplayer: SocketIO({ server: 'localhost:8000' }),
       playerID
     });
 
     this.client.start();
     this.rootElement = rootElement;
-    this.createBoard();
-    this.attachListeners();
+    this.isCreated = false;
+    this.create();
 
     // As before, but we also subscribe to the client:
     this.client.subscribe(state => this.update(state));
+  }
+
+  create() {
+    if (this.client.getInitialState() === null || this.isCreated) {
+      return;
+    }
+
+    this.createBoard();
+    this.attachListeners();
+    this.isCreated = true;
   }
 
   createBoard() {
@@ -38,7 +51,7 @@ class QwixxClient {
       rows.push(`<tr>
           <td class="space">&nbsp;</td>
           ${cells.join('')}
-          <td class="lock ${board[i][ColCount-1].color}"><span>&nbsp;</span></td>
+          <td class="lock ${board[i][ColCount - 1].color}"><span>&nbsp;</span></td>
           <td class="space">&nbsp;</td>
         </tr>`
       );
@@ -52,7 +65,7 @@ class QwixxClient {
         ${rows.join('')}
         <tr>
           <td class="space">&nbsp;</td>
-          <td class="fail" colspan="${ColCount+1}">
+          <td class="fail" colspan="${ColCount + 1}">
             <span class="fail-text">Misthrows:</span>
             <span class="fail-box">&nbsp;</span>
             <span class="fail-box">&nbsp;</span>
@@ -93,9 +106,11 @@ class QwixxClient {
       <button class="discard">Discard</button>
       <button class="mis-throw">Mis throw :(</button>
     `;
+
+    this.isCreated = true;
   }
 
-  createDie(odd, dieName){
+  createDie(odd, dieName) {
     const rollClass = odd ? 'odd-roll' : 'even-roll'
     return `<ol class="die-list ${rollClass} ${dieName}" data-roll="">
         <li class="die-item" data-side="1">
@@ -135,7 +150,6 @@ class QwixxClient {
   }
 
   attachListeners() {
-    
     const handleCellClick = event => {
       const row = parseInt(event.target.dataset.row);
       const col = parseInt(event.target.dataset.col);
@@ -159,7 +173,7 @@ class QwixxClient {
     cells.forEach(cell => {
       cell.onclick = handleCellClick;
     });
-    
+
     const throwButton = this.rootElement.querySelector('.throw-dice');
     throwButton.onclick = handleThrowClick;
 
@@ -171,6 +185,9 @@ class QwixxClient {
   }
 
   update(state) {
+    if (state === null) return;
+    if (!this.isCreated) this.create();
+
     const isCurrentPlayer = state.ctx.currentPlayer === this.client.playerID;
     const player = state.G['player' + this.client.playerID];
     const playerStage = state.ctx.activePlayers && state.ctx.activePlayers[this.client.playerID];
@@ -235,7 +252,7 @@ class QwixxClient {
 
   drawButtons(isCurrentPlayer, playerStage, currentPlayerDiscardedWhite) {
     const throwButton = this.rootElement.querySelector('.throw-dice');
-    const discardButton = this.rootElement.querySelector('.discard');    
+    const discardButton = this.rootElement.querySelector('.discard');
     const misButton = this.rootElement.querySelector('.mis-throw');
 
     const canDiscard = playerStage === 'pickingWhite' || (playerStage === 'pickingColor' && !currentPlayerDiscardedWhite);

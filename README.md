@@ -1,6 +1,10 @@
 # Qwixx
 Digital version of the boardgame Qwixx
 
+## How to run
+
+1. Open a terminal and start the server by running `npm run serve`
+2. Open another terminal and start the client by runing `npm start`
 
 # Inspiration
 - https://github.com/aflorj/briscola

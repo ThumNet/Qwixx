@@ -23,7 +23,7 @@ export const Qwixx = {
     turn: {
 
         onBegin: (G, ctx) => {
-            console.log('onbegin', ctx.currentPlayer);
+            console.log('turn.onBegin', ctx.currentPlayer);
             resetTurn(G, ctx);
         },
 

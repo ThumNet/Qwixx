@@ -5,6 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel ./src/index.html --open",
+    "serve": "node -r esm src/server.js",
     "build": "rimraf dist && parcel build ./src/index.html"
   },
   "browserslist": "> 0.4% and not ie 11",
@@ -19,7 +20,8 @@
   },
   "homepage": "https://github.com/ThumNet/Qwixx#readme",
   "dependencies": {
-    "boardgame.io": "^0.43.3"
+    "boardgame.io": "^0.44.4",
+    "esm": "^3.2.25"
   },
   "devDependencies": {
     "parcel": "^2.0.0-beta.2"
